@@ -13,8 +13,10 @@ lines.each do |line|
   valid = true
 
   words = line.split
-  words.each do |word|
-    if (words - [word]).any? { |w| w.anagram_of?(word) }
+  words.each_with_index do |word, index|
+    tmp = words.clone
+    tmp[index] = nil
+    if tmp.compact.any? { |w| w.anagram_of?(word) }
       valid = false
       break
     end

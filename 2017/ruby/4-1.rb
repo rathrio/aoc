@@ -16,8 +16,6 @@ lines.each do |line|
   end
 
   valid_line_count += 1 if valid
-
-  valid = true
 end
 
 puts valid_line_count
