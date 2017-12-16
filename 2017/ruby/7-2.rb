@@ -7,11 +7,11 @@ $towers = {}
 Tower = Struct.new(:name, :weight, :subtower_names, :parent) do
   def total_weight
     return weight if subtower_names.empty?
-    weight + subtower_weights.sum
+    weight + subtowers.sum(&:total_weight)
   end
 
   def subtower_weights
-    subtower_names.map { |n| $towers.fetch(n).total_weight }
+    subtower_names.map { |n| $towers.fetch(n).weight }
   end
 
   def subtowers
@@ -35,16 +35,18 @@ all_towers.each do |tower|
   end
 end
 
-def fix_weight(tower)
-  return 0 if tower.subtower_names.empty?
-  return 0 if tower.subtower_weights.uniq.count == 1
+def weight_to_fix(tower, diff)
+  tower.subtowers.each_cons(2) do |t1, t2|
+    next if t1.total_weight == t2.total_weight
 
-  subtowers = tower.subtowers
-  # todo: find the odd one out and trickle down
+    if t1.subtower_weights.uniq
+    end
+
+    break
+  end
 end
 
 root = all_towers.find { |t| t.parent.nil? }
-
-fix_weight(root)
-
-puts
+w1, w2 = root.subtowers.map(&:total_weight).uniq.sort.reverse
+diff = w1 - w2
+puts weight_to_fix(root, diff)
