@@ -46,7 +46,7 @@ fn part2() {
 
             if reached.contains_key(&current_frequency) {
                 println!("{}", current_frequency);
-                process::exit(1);
+                process::exit(0);
             }
 
             reached.insert(current_frequency, true);
