@@ -27,9 +27,10 @@ fn parse_records() -> Vec<Record> {
     records
 }
 
-fn part1() {
+fn guard_sleep_schedule() -> HashMap<u32, Vec<u32>> {
     let records = parse_records();
-    let mut sleeps: HashMap<u32, Vec<u32>> = HashMap::new();
+
+    let mut schedule: HashMap<u32, Vec<u32>> = HashMap::new();
     let mut current_guard_id: Option<u32> = None;
     let mut fall_minute: Option<u32> = None;
 
@@ -41,8 +42,8 @@ fn part1() {
                 let id = message_parts[1].trim_start_matches("#").parse::<u32>().unwrap();
                 current_guard_id = Some(id);
 
-                if !sleeps.contains_key(&id) {
-                    sleeps.insert(id, Vec::new());
+                if !schedule.contains_key(&id) {
+                    schedule.insert(id, Vec::new());
                 }
             },
             "falls" => {
@@ -51,7 +52,7 @@ fn part1() {
             "wakes" => {
                 let wake_minute = record.date.minute();
                 for sleep_minute in fall_minute.unwrap()..wake_minute {
-                    sleeps.get_mut(&current_guard_id.unwrap())
+                    schedule.get_mut(&current_guard_id.unwrap())
                         .unwrap()
                         .push(sleep_minute);
                 }
@@ -60,7 +61,13 @@ fn part1() {
         };
     }
 
-    let (guard_id, sleep_minutes) = sleeps.iter()
+    schedule
+}
+
+fn part1() {
+    let schedule = guard_sleep_schedule();
+
+    let (guard_id, sleep_minutes) = schedule.iter()
         .max_by_key(|(_, sleep_minutes)| sleep_minutes.len())
         .unwrap();
 
@@ -72,7 +79,25 @@ fn part1() {
 }
 
 fn part2() {
+    let schedule = guard_sleep_schedule();
 
+    let sleep_frequencies: Vec<(u32, &u32, usize)> = (0..60).map(|minute| {
+        let (guard_id, sleep_minutes) = schedule.iter()
+            .max_by_key(|(_, minutes)| minutes.iter().filter(|m| **m == minute).count())
+            .unwrap();
+
+        let count = sleep_minutes.iter()
+            .filter(|m| **m == minute)
+            .count();
+
+        (minute, guard_id, count)
+    }).collect();
+
+    let (minute, guard_id, _) = sleep_frequencies.iter()
+        .max_by_key(|f| f.2)
+        .unwrap();
+
+    println!("{}", *guard_id * minute);
 }
 
 fn main() {
