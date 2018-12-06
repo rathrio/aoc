@@ -21,6 +21,15 @@ fn parse_coordinates() -> Vec<(i16, i16)> {
         .collect::<Vec<(i16, i16)>>()
 }
 
+fn bounding_box(coordinates: &Vec<(i16, i16)>) -> (i16, i16, i16, i16) {
+    let min_x = coordinates.iter().min_by_key(|(x, _)| x).unwrap().0;
+    let max_x = coordinates.iter().max_by_key(|(x, _)| x).unwrap().0;
+    let min_y = coordinates.iter().min_by_key(|(_, y)| y).unwrap().1;
+    let max_y = coordinates.iter().max_by_key(|(_, y)| y).unwrap().1;
+
+    (min_x, max_x, min_y, max_y)
+}
+
 fn part1() {
     let coordinates = parse_coordinates();
     let mut clusters: HashMap<(i16, i16), Vec<(i16, i16)>> = HashMap::new();
@@ -28,11 +37,7 @@ fn part1() {
         clusters.insert(*coordinate, Vec::new());
     }
 
-    let min_x = coordinates.iter().min_by_key(|(x, _)| x).unwrap().0;
-    let max_x = coordinates.iter().max_by_key(|(x, _)| x).unwrap().0;
-    let min_y = coordinates.iter().min_by_key(|(_, y)| y).unwrap().1;
-    let max_y = coordinates.iter().max_by_key(|(_, y)| y).unwrap().1;
-
+    let (min_x, max_x, min_y, max_y) = bounding_box(&coordinates);
     let mut ignore: HashSet<(i16, i16)> = HashSet::new();
 
     for x in min_x..=max_x {
@@ -72,11 +77,7 @@ fn part1() {
 
 fn part2() {
     let coordinates = parse_coordinates();
-
-    let min_x = coordinates.iter().min_by_key(|(x, _)| x).unwrap().0;
-    let max_x = coordinates.iter().max_by_key(|(x, _)| x).unwrap().0;
-    let min_y = coordinates.iter().min_by_key(|(_, y)| y).unwrap().1;
-    let max_y = coordinates.iter().max_by_key(|(_, y)| y).unwrap().1;
+    let (min_x, max_x, min_y, max_y) = bounding_box(&coordinates);
 
     let mut region = 0;
 
