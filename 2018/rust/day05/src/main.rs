@@ -1,11 +1,7 @@
 use std::env;
 
 fn have_opposite_polarity(char1: &char, char2: &char) -> bool {
-    match char1 {
-        'a'...'z' => char1.to_ascii_uppercase() == *char2,
-        'A'...'Z' => char1.to_ascii_lowercase() == *char2,
-        _ => false,
-    }
+    char1 != char2 && char1.to_ascii_uppercase() == char2.to_ascii_uppercase()
 }
 
 fn react(units: &Vec<char>) -> Vec<char> {
