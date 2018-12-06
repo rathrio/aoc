@@ -2,8 +2,8 @@ use std::env;
 
 fn have_opposite_polarity(char1: &char, char2: &char) -> bool {
     match char1 {
-        'a'...'z' => char1.to_string().to_uppercase() == char2.to_string(),
-        'A'...'Z' => char1.to_string().to_lowercase() == char2.to_string(),
+        'a'...'z' => char1.to_ascii_uppercase() == *char2,
+        'A'...'Z' => char1.to_ascii_lowercase() == *char2,
         _ => false,
     }
 }
@@ -48,7 +48,6 @@ fn part1() {
 }
 
 fn part2() {
-
 }
 
 fn main() {
