@@ -64,12 +64,36 @@ fn part1() {
         .filter(|(coordinate, _)| !ignore.contains(coordinate))
         .max_by_key(|(_, locations)| locations.len())
         .unwrap()
-        .1.len();
+        .1
+        .len();
 
     println!("{}", largest_area);
 }
 
-fn part2() {}
+fn part2() {
+    let coordinates = parse_coordinates();
+
+    let min_x = coordinates.iter().min_by_key(|(x, _)| x).unwrap().0;
+    let max_x = coordinates.iter().max_by_key(|(x, _)| x).unwrap().0;
+    let min_y = coordinates.iter().min_by_key(|(_, y)| y).unwrap().1;
+    let max_y = coordinates.iter().max_by_key(|(_, y)| y).unwrap().1;
+
+    let mut region = 0;
+
+    // Ignore some border values because the area is in the center somewhere.
+    // This will break for some data.
+    for x in (min_x + 21)..(max_x - 21) {
+        for y in (min_y + 21)..(max_y - 25) {
+            let location = (x, y);
+            let total_distance: u16 = coordinates.iter().map(|c| distance(&location, c)).sum();
+            if total_distance < 10_000 {
+                region += 1;
+            }
+        }
+    }
+
+    println!("{}", region);
+}
 
 fn main() {
     let args: Vec<String> = env::args().collect();
