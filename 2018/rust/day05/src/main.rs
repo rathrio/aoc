@@ -5,22 +5,17 @@ fn have_opposite_polarity(char1: &char, char2: &char) -> bool {
 }
 
 fn react(units: &Vec<char>) -> Vec<char> {
-    let mut compressed: Vec<char> = Vec::new();
+    let mut compressed = Vec::with_capacity(units.len());
 
-    let mut index = 0;
-    while index < units.len() {
-        let unit = units[index];
-        if index == units.len() - 1 {
-            compressed.push(unit);
-            break;
-        }
-        let next_unit = units[index + 1];
-
-        if have_opposite_polarity(&unit, &next_unit) {
-            index += 2;
+    for unit in units {
+        if compressed.len() == 0 {
+            compressed.push(*unit);
         } else {
-            compressed.push(unit);
-            index += 1;
+            if have_opposite_polarity(unit, compressed.last().unwrap()) {
+                compressed.pop();
+            } else {
+                compressed.push(*unit);
+            }
         }
     }
 
@@ -29,21 +24,28 @@ fn react(units: &Vec<char>) -> Vec<char> {
 
 fn part1() {
     let contents = include_str!("input.txt");
-    let mut units: Vec<char> = contents.chars().collect();
-
-    loop {
-        let compressed = react(&units);
-
-        if compressed.len() == units.len() {
-            println!("{}", compressed.len());
-            break;
-        }
-
-        units = compressed;
-    }
+    let units: Vec<char> = contents.chars().collect();
+    let compressed = react(&units);
+    println!("{}", compressed.len());
 }
 
 fn part2() {
+    let contents = include_str!("input.txt");
+    let units: Vec<char> = contents.chars().collect();
+
+    let (_, length) = "abcdefghijkmnlopqrstuvwxzy".chars()
+        .map(|c| {
+            let filtered_units: Vec<char> = units.iter()
+                .cloned()
+                .filter(|unit| unit.to_ascii_lowercase() != c)
+                .collect();
+
+            (c, react(&filtered_units).len())
+        })
+        .min_by_key(|p| p.1)
+        .unwrap();
+
+    println!("{}", length);
 }
 
 fn main() {
