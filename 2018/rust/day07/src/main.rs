@@ -90,7 +90,7 @@ struct Worker {
 }
 
 impl Worker {
-    fn is_free(self) -> bool {
+    fn is_free(&self) -> bool {
         self.workload == 0
     }
 
@@ -99,6 +99,10 @@ impl Worker {
             0 => (),
             _ => self.workload -= 1,
         }
+    }
+
+    fn idle(&mut self) {
+        self.step = None;
     }
 
     fn assign(&mut self, step: char, workload: u8) {
@@ -118,7 +122,7 @@ fn part2() {
     let prerequisites = build_prerequisites(&instructions);
     let mut available_steps = initial_steps(&instructions);
 
-    let workers: [Worker; 5] = [
+    let mut workers: Vec<Worker> = vec![
         Worker {
             workload: 0,
             step: None,
@@ -141,14 +145,11 @@ fn part2() {
         },
     ];
 
-    let mut seconds = 0;
+    let mut seconds = -1;
     let mut path: Vec<char> = Vec::new();
+    let mut in_progress: Vec<char> = Vec::new();
 
     loop {
-        println!("Second: {}", seconds);
-        println!("Available steps: {:?}", available_steps);
-        println!("Workers: {:?}\n", workers);
-
         if available_steps.is_empty() && workers.iter().all(|w| w.is_free()) {
             break;
         }
@@ -156,7 +157,7 @@ fn part2() {
         available_steps.sort();
 
         for i in 0..5 {
-            let mut worker = &mut workers[i];
+            let worker = &mut workers[i];
             worker.work();
 
             if !worker.is_free() {
@@ -178,21 +179,25 @@ fn part2() {
                         .iter()
                         .cloned()
                         .filter(|c| prerequisites[c].iter().all(|p| path.contains(p)))
-                        .filter(|c| !(path.contains(c) || available_steps.contains(c)))
+                        .filter(|c| {
+                            !(path.contains(c)
+                                || available_steps.contains(c)
+                                || in_progress.contains(c))
+                        })
                         .collect();
 
                     available_steps.append(&mut next_available_steps);
                 }
             }
 
-            if !available_steps.is_empty() {
+            if available_steps.is_empty() {
+                worker.idle();
+            } else {
                 let next_step = available_steps.remove(0);
+                in_progress.push(next_step);
                 worker.assign(next_step, workloads[&next_step]);
-                println!("Worker {}: {:?}", i, worker);
             }
         }
-
-        println!("Workers after assignment: {:?}\n", workers);
 
         seconds += 1;
     }
