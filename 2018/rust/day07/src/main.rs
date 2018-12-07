@@ -21,8 +21,7 @@ fn parse_instructions() -> Vec<Instruction> {
         .collect()
 }
 
-fn part1() {
-    let instructions = parse_instructions();
+fn build_prerequisites(instructions: &Vec<Instruction>) -> HashMap<char, Vec<char>> {
     let mut prerequisites: HashMap<char, Vec<char>> = HashMap::new();
 
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ".chars().for_each(|c| {
@@ -34,14 +33,24 @@ fn part1() {
         prerequisites.get_mut(&step).unwrap().push(i.prerequisite);
     });
 
+    prerequisites
+}
+
+fn initial_steps(instructions: &Vec<Instruction>) -> Vec<char> {
     let mut steps: Vec<char> = instructions.iter().map(|i| i.step).collect();
     steps.sort();
     steps.dedup();
 
-    let mut available_steps: Vec<char> = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         .chars()
         .filter(|c| !steps.contains(c))
-        .collect();
+        .collect()
+}
+
+fn part1() {
+    let instructions = parse_instructions();
+    let prerequisites = build_prerequisites(&instructions);
+    let mut available_steps = initial_steps(&instructions);
 
     let mut path: Vec<char> = Vec::new();
 
@@ -63,11 +72,7 @@ fn part1() {
         let mut next_available_steps: Vec<char> = candidates
             .iter()
             .cloned()
-            .filter(|c| {
-                prerequisites[c]
-                    .iter()
-                    .all(|p| path.contains(p))
-            })
+            .filter(|c| prerequisites[c].iter().all(|p| path.contains(p)))
             .filter(|c| !(path.contains(c) || available_steps.contains(c)))
             .collect();
 
@@ -78,7 +83,122 @@ fn part1() {
     println!("{}", result);
 }
 
-fn part2() {}
+#[derive(Debug)]
+struct Worker {
+    workload: u8,
+    step: Option<char>,
+}
+
+impl Worker {
+    fn is_free(self) -> bool {
+        self.workload == 0
+    }
+
+    fn work(&mut self) {
+        match self.workload {
+            0 => (),
+            _ => self.workload -= 1,
+        }
+    }
+
+    fn assign(&mut self, step: char, workload: u8) {
+        self.step = Some(step);
+        self.workload = workload;
+    }
+}
+
+fn part2() {
+    let mut workloads: HashMap<char, u8> = HashMap::new();
+
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ".chars().for_each(|c| {
+        workloads.insert(c, c as u8 - b'A' + 61);
+    });
+
+    let instructions = parse_instructions();
+    let prerequisites = build_prerequisites(&instructions);
+    let mut available_steps = initial_steps(&instructions);
+
+    let workers: [Worker; 5] = [
+        Worker {
+            workload: 0,
+            step: None,
+        },
+        Worker {
+            workload: 0,
+            step: None,
+        },
+        Worker {
+            workload: 0,
+            step: None,
+        },
+        Worker {
+            workload: 0,
+            step: None,
+        },
+        Worker {
+            workload: 0,
+            step: None,
+        },
+    ];
+
+    let mut seconds = 0;
+    let mut path: Vec<char> = Vec::new();
+
+    loop {
+        println!("Second: {}", seconds);
+        println!("Available steps: {:?}", available_steps);
+        println!("Workers: {:?}\n", workers);
+
+        if available_steps.is_empty() && workers.iter().all(|w| w.is_free()) {
+            break;
+        }
+
+        available_steps.sort();
+
+        for i in 0..5 {
+            let mut worker = &mut workers[i];
+            worker.work();
+
+            if !worker.is_free() {
+                continue;
+            }
+
+            match worker.step {
+                None => (),
+                Some(step) => {
+                    path.push(step);
+
+                    let candidates: Vec<char> = instructions
+                        .iter()
+                        .filter(|i| i.prerequisite == step)
+                        .map(|i| i.step)
+                        .collect();
+
+                    let mut next_available_steps: Vec<char> = candidates
+                        .iter()
+                        .cloned()
+                        .filter(|c| prerequisites[c].iter().all(|p| path.contains(p)))
+                        .filter(|c| !(path.contains(c) || available_steps.contains(c)))
+                        .collect();
+
+                    available_steps.append(&mut next_available_steps);
+                }
+            }
+
+            if !available_steps.is_empty() {
+                let next_step = available_steps.remove(0);
+                worker.assign(next_step, workloads[&next_step]);
+                println!("Worker {}: {:?}", i, worker);
+            }
+        }
+
+        println!("Workers after assignment: {:?}\n", workers);
+
+        seconds += 1;
+    }
+
+    println!("{}", seconds);
+}
 
 fn main() {
     let args: Vec<String> = env::args().collect();
