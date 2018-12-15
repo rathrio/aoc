@@ -1,5 +1,7 @@
 use std::env;
 
+const NUM_GENERATIONS: u64 = 50_000_000_000;
+
 #[derive(Debug)]
 struct Plants {
     state: Vec<char>,
@@ -22,6 +24,10 @@ impl Plants {
         }
     }
 
+    fn num_alive(&self) -> usize {
+        self.state.iter().filter(|c| **c == '#').count()
+    }
+
     fn pot_numbers_sum(&self) -> isize {
         let mut sum = 0;
         for (index, item) in self.state.iter().enumerate() {
@@ -31,6 +37,11 @@ impl Plants {
             }
         }
         sum
+    }
+
+    fn pattern(&self) -> String {
+        let s = self.state.iter().collect::<String>();
+        String::from(s.trim_matches('.'))
     }
 
     fn pad(&mut self) {
@@ -82,7 +93,24 @@ fn part1() {
     println!("{}", plants.pot_numbers_sum());
 }
 
-fn part2() {}
+fn part2() {
+    let mut plants = parse_plants();
+
+    let mut prev_pattern = String::from("");
+    for generation in 1..=NUM_GENERATIONS {
+        plants.spread();
+        plants.state.push('.');
+
+        let pattern = plants.pattern();
+        if pattern == prev_pattern {
+            let to_add = (NUM_GENERATIONS - generation) * plants.num_alive() as u64;
+            println!("{}", plants.pot_numbers_sum() + to_add as isize);
+            break;
+        }
+
+        prev_pattern = pattern;
+    }
+}
 
 fn main() {
     let args: Vec<String> = env::args().collect();
