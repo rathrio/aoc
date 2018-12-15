@@ -1,6 +1,7 @@
 use std::env;
+use std::process;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug)]
 enum Direction {
     Up,
     Down,
@@ -8,7 +9,7 @@ enum Direction {
     Right,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug)]
 struct Cart {
     position: (usize, usize),
     direction: Direction,
@@ -80,10 +81,6 @@ impl Cart {
 fn parse_grid() -> (Vec<Vec<char>>, Vec<Cart>) {
     let contents = include_str!("input.txt");
     let mut cells: Vec<Vec<char>> = vec![vec![' '; 150]; 150];
-
-    // let contents = include_str!("sample.txt");
-    // let mut cells: Vec<Vec<char>> = vec![vec![' '; 13]; 6];
-
     let mut carts: Vec<Cart> = Vec::new();
 
     for (y, line) in contents.lines().enumerate() {
@@ -124,7 +121,8 @@ fn part1() {
             (c1_y, c1_x).cmp(&(c2_y, c2_x))
         });
 
-        for cart in carts.iter_mut() {
+        for i in 0..carts.len() {
+            let cart = carts.get_mut(i).unwrap();
             let (x, y) = cart.position;
             let cell = grid[y][x];
             match cell {
@@ -160,7 +158,7 @@ fn part1() {
             {
                 let (x, y) = new_position;
                 println!("{},{}", x, y);
-                break;
+                process::exit(0);
             }
         }
     }
