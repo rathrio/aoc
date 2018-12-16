@@ -14,6 +14,7 @@ struct Cart {
     position: (usize, usize),
     direction: Direction,
     intersection_choice: u8,
+    crashed: bool,
 }
 
 impl Cart {
@@ -22,6 +23,7 @@ impl Cart {
             position,
             direction,
             intersection_choice: 1,
+            crashed: false,
         }
     }
 
@@ -36,6 +38,31 @@ impl Cart {
         };
 
         self.position
+    }
+
+    fn turn(&mut self, cell: char) {
+        match cell {
+            '/' => {
+                match self.direction {
+                    Direction::Up => self.update_direction(Direction::Right),
+                    Direction::Down => self.update_direction(Direction::Left),
+                    Direction::Left => self.update_direction(Direction::Down),
+                    Direction::Right => self.update_direction(Direction::Up),
+                };
+            }
+            '\\' => {
+                match self.direction {
+                    Direction::Up => self.update_direction(Direction::Left),
+                    Direction::Down => self.update_direction(Direction::Right),
+                    Direction::Right => self.update_direction(Direction::Down),
+                    Direction::Left => self.update_direction(Direction::Up),
+                };
+            }
+            '+' => {
+                self.choose_direction();
+            }
+            _ => (),
+        }
     }
 
     fn update_direction(&mut self, direction: Direction) {
@@ -125,29 +152,7 @@ fn part1() {
             let cart = carts.get_mut(i).unwrap();
             let (x, y) = cart.position;
             let cell = grid[y][x];
-            match cell {
-                '/' => {
-                    match cart.direction {
-                        Direction::Up => cart.update_direction(Direction::Right),
-                        Direction::Down => cart.update_direction(Direction::Left),
-                        Direction::Left => cart.update_direction(Direction::Down),
-                        Direction::Right => cart.update_direction(Direction::Up),
-                    };
-                }
-                '\\' => {
-                    match cart.direction {
-                        Direction::Up => cart.update_direction(Direction::Left),
-                        Direction::Down => cart.update_direction(Direction::Right),
-                        Direction::Right => cart.update_direction(Direction::Down),
-                        Direction::Left => cart.update_direction(Direction::Up),
-                    };
-                }
-                '+' => {
-                    cart.choose_direction();
-                }
-                _ => (),
-            }
-
+            cart.turn(cell);
             let new_position = cart.mv();
             let cart_positions: Vec<(usize, usize)> = carts.iter().map(|c| c.position).collect();
             if cart_positions
@@ -164,7 +169,45 @@ fn part1() {
     }
 }
 
-fn part2() {}
+fn part2() {
+    let (grid, mut carts) = parse_grid();
+
+    loop {
+        carts.sort_by(|c1, c2| {
+            let (c1_x, c1_y) = c1.position;
+            let (c2_x, c2_y) = c2.position;
+
+            (c1_y, c1_x).cmp(&(c2_y, c2_x))
+        });
+
+        for i in 0..carts.len() {
+            let cart = carts.get_mut(i).unwrap();
+            if cart.crashed {
+                continue;
+            }
+
+            let (x, y) = cart.position;
+            let cell = grid[y][x];
+            cart.turn(cell);
+            let new_position = cart.mv();
+
+            let crashed = carts.iter().filter(|c| !c.crashed && c.position == new_position).count();
+            if crashed > 1 {
+                carts
+                    .iter_mut()
+                    .filter(|c| !c.crashed && c.position == new_position)
+                    .for_each(|c| c.crashed = true);
+            }
+        }
+
+        if carts.iter().filter(|c| !c.crashed).count() == 1 {
+            let cart = carts.iter().find(|c| !c.crashed).unwrap();
+            let (x, y) = cart.position;
+            println!("{},{}", x, y);
+            process::exit(0);
+        }
+    }
+}
 
 fn main() {
     let args: Vec<String> = env::args().collect();
