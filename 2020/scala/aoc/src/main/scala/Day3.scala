@@ -16,23 +16,26 @@ object Day3 extends App {
     val (right, down) = move
     var numTrees = 0
     var colIndex = right
+    var rowIndex = down
 
-    var downCounter = down - 1
-
-    grid.drop(down).foreach { line =>
-      if (downCounter == 0) {
-        downCounter = down - 1
-        val location = line(colIndex % line.length)
-        if (location == "#") {
-          numTrees += 1
-        }
-        colIndex += right
-      } else {
-        downCounter -= 1
+    var row = grid(rowIndex)
+    while (true) {
+      val location = row(colIndex % row.length)
+      if (location == "#") {
+        numTrees += 1
       }
+
+      colIndex += right
+      rowIndex += down
+
+      if (rowIndex >= grid.length) {
+        return numTrees
+      }
+
+      row = grid(rowIndex)
     }
 
-    numTrees
+    -1
   }
 
   def part1() = {
@@ -47,7 +50,7 @@ object Day3 extends App {
       (5, 1),
       (7, 1),
       (1, 2)
-    ).map(treesInSlope(g, _)).product
+    ).map(treesInSlope(g, _).toLong).product
   }
 
   println("Part 1: " + part1())
