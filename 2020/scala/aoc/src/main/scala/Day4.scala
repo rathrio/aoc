@@ -22,17 +22,40 @@ case class Pattern(pattern: Regex) extends Validator {
   override def validate(input: String): Boolean = pattern.matches(input)
 }
 
-object Day4 extends App {
-  val DATA_PATTERN = "\\S+:\\S+".r
+case class Height() extends Validator {
+  val CmPattern = "(\\d{3})cm".r
+  val InchPattern = "(\\d{2})in".r
 
+  val CmRange = (150, 193)
+  val InchRange = (59, 76)
+
+  override def validate(input: String): Boolean = {
+    input match {
+      case CmPattern(capture) =>
+        val n = capture.toInt
+        n >= CmRange._1 && n <= CmRange._2
+
+      case InchPattern(capture) =>
+        val n = capture.toInt
+        n >= InchRange._1 && n <= InchRange._2
+
+      case _ => false
+    }
+  }
+}
+
+object Day4 extends App {
+  val DataPattern = "\\S+:\\S+".r
+
+  type Field = String
   type Passport = Map[String, String]
 
-  val REQUIRED_FIELDS: Map[String, Validator] = Map(
+  val REQUIRED_FIELDS: Map[Field, Validator] = Map(
     "byr" -> Range(1920, 2002),
     "iyr" -> Range(2010, 2020),
     "eyr" -> Range(2020, 2030),
-    "hgt" -> Pattern("^\\d+(cm|in)$".r),
-    "hcl" -> Pattern("^#\\w{6}$".r),
+    "hgt" -> Height(),
+    "hcl" -> Pattern("^#[0-9a-f]{6}$".r),
     "ecl" -> Enum(List("amb", "blu", "brn", "gry", "grn", "hzl", "oth")),
     "pid" -> Pattern("^\\d{9}$".r)
   )
@@ -42,7 +65,7 @@ object Day4 extends App {
   )
 
   def contents(): String = {
-    val source = Source.fromFile("src/main/resources/Day4.invalid.txt")
+    val source = Source.fromFile("src/main/resources/Day4.txt")
     val str = source.mkString
     source.close()
     str
@@ -53,7 +76,7 @@ object Day4 extends App {
   }
 
   def parsePassport(str: String): Passport = {
-    DATA_PATTERN.findAllIn(str)
+    DataPattern.findAllIn(str)
       .map(_.split(":"))
       .map(pair => Tuple2(pair(0), pair(1)))
       .toMap
@@ -68,18 +91,18 @@ object Day4 extends App {
     diff.isEmpty || diff == OPTIONAL_FIELDS
   }
 
-  def hasValidValues(passport: Passport): Boolean = {
+  def hasValidFields(passport: Passport): Boolean = {
     if (!hasRequiredFields(passport)) {
       return false
     }
 
     passport.forall { case (field, value) =>
       if (OPTIONAL_FIELDS.contains(field)) {
-        return true
+        true
+      } else {
+        val validator = REQUIRED_FIELDS(field)
+        validator.validate(value)
       }
-
-      val validator = REQUIRED_FIELDS(field)
-      validator.validate(value)
     }
   }
 
@@ -88,7 +111,7 @@ object Day4 extends App {
   }
 
   def part2() = {
-    passports().count(hasValidValues)
+    passports().count(hasValidFields)
   }
 
   println("Part 1: " + part1())
