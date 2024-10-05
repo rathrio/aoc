@@ -1,26 +1,70 @@
-map = DATA.readlines.map { |line| line.chomp.chars.map(&:to_i) }
-visibility_map = map.map { |row| row.map { true } }
+def part1
+  map = DATA.readlines.map { |line| line.chomp.chars.map(&:to_i) }
+  visibility_map = map.map { |row| row.map { true } }
 
-num_visible = map.length * map.first.length
+  num_visible = map.length * map.first.length
 
-(1...map.length - 1).each do |x|
-  (1...map.first.length - 1).each do |y|
-    current_tree = map[x][y]
-    # left
-    next if (0...y).all? { |y_left| map[x][y_left] < current_tree }
-    # right
-    next if (y + 1...map.first.length).all? { |y_right| map[x][y_right] < current_tree }
-    # top
-    next if (0...x).all? { |x_top| map[x_top][y] < current_tree }
-    # bottom
-    next if (x + 1...map.length).all? { |x_bottom| map[x_bottom][y] < current_tree }
+  (1...map.length - 1).each do |x|
+    (1...map.first.length - 1).each do |y|
+      current_tree = map[x][y]
+      # left
+      next if (0...y).all? { |y_left| map[x][y_left] < current_tree }
+      # right
+      next if (y + 1...map.first.length).all? { |y_right| map[x][y_right] < current_tree }
+      # top
+      next if (0...x).all? { |x_top| map[x_top][y] < current_tree }
+      # bottom
+      next if (x + 1...map.length).all? { |x_bottom| map[x_bottom][y] < current_tree }
 
-    visibility_map[x][y] = false
-    num_visible -= 1
+      visibility_map[x][y] = false
+      num_visible -= 1
+    end
   end
+
+  puts num_visible
 end
 
-puts num_visible
+def part2
+  map = DATA.readlines.map { |line| line.chomp.chars.map(&:to_i) }
+
+  max_scenic_score = 0
+
+  (1...map.length - 1).each do |y|
+    (1...map.first.length - 1).each do |x|
+      current_tree = map[y][x]
+
+      left = 0
+      (0...x).to_a.reverse.each do |x_left|
+        left += 1
+        break if map[y][x_left] >= current_tree
+      end
+
+      right = 0
+      (x + 1...map.first.length).each do |x_right|
+        right += 1
+        break if map[y][x_right] >= current_tree
+      end
+
+      top = 0
+      (0...y).to_a.reverse.each do |y_top|
+        top += 1
+        break if map[y_top][x] >= current_tree
+      end
+
+      bottom = 0
+      (y + 1...map.length).each do |y_bottom|
+        bottom += 1
+        break if map[y_bottom][x] >= current_tree
+      end
+
+      max_scenic_score = [max_scenic_score, left * right * top * bottom].max 
+    end
+  end
+
+  puts max_scenic_score
+end
+
+part2
 
 __END__
 101000101302332302213011003243304222032110202245353522155334033122313210221230000001220130100022122
