@@ -1,6 +1,3 @@
-input = DATA.read
-stacks_str, instructions_str = input.split(" 1   2   3   4   5   6   7   8   9 \n\n")
-
 def parse_stacks(stacks_str)
   stacks = {
     1 => [],
@@ -31,18 +28,40 @@ def parse_instructions(instructions_str)
   end
 end
 
-stacks = parse_stacks(stacks_str)
-instructions = parse_instructions(instructions_str)
+def part1
+  input = DATA.read
+  stacks_str, instructions_str = input.split(" 1   2   3   4   5   6   7   8   9 \n\n")
 
-instructions.each do |i|
-  amount, from, to = i
+  stacks = parse_stacks(stacks_str)
+  instructions = parse_instructions(instructions_str)
 
-  amount.times do
-    stacks[to].push(stacks[from].pop)
+  instructions.each do |i|
+    amount, from, to = i
+
+    amount.times do
+      stacks[to].push(stacks[from].pop)
+    end
   end
+
+  puts stacks.values.map(&:last).join
 end
 
-puts stacks.values.map(&:last).join
+def part2
+  input = DATA.read
+  stacks_str, instructions_str = input.split(" 1   2   3   4   5   6   7   8   9 \n\n")
+
+  stacks = parse_stacks(stacks_str)
+  instructions = parse_instructions(instructions_str)
+
+  instructions.each do |i|
+    amount, from, to = i
+    stacks[to].push(*stacks[from].pop(amount))
+  end
+
+  puts stacks.values.map(&:last).join
+end
+
+part2
 
 
 __END__
