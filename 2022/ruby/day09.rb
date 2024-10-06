@@ -19,12 +19,12 @@ def direction(v)
   ]
 end
 
-def interpolate(head, tail, visited)
+def interpolate(head, tail, visited = nil)
   return tail if distance(head, tail) < 2
 
   dir = direction(subtract(head, tail))
   new_tail = add(tail, dir)
-  visited.add(new_tail)
+  visited.add(new_tail) if visited
   new_tail
 end
 
@@ -67,8 +67,56 @@ def part1
   puts visited.size
 end
 
-part1
+def move(direction, rope, visited)
+  interpolation_target = nil
+  new_rope = []
 
+  rope.each_with_index do |v, i|
+    if interpolation_target.nil?
+      n = add(v, direction)
+      new_rope << n
+      interpolation_target = n
+    else
+      n = interpolate(interpolation_target, v, i == 9 ? visited : nil)
+      new_rope << n
+      interpolation_target = n
+    end
+  end
+
+  new_rope
+end
+
+def part2
+  rope = 10.times.map { [0, 0] }
+  visited = Set.new([0, 0])
+
+  DATA.readlines.each do |line|
+    case line.chomp.split(" ")
+    in ["L", s]
+      s.to_i.times do
+        rope = move([-1, 0], rope, visited)
+      end
+    in ["R", s]
+      s.to_i.times do 
+        rope = move([1, 0], rope, visited)
+      end
+    in ["U", s]
+      s.to_i.times do 
+        rope = move([0, 1], rope, visited)
+      end
+    in ["D", s]
+      s.to_i.times do
+        rope = move([0, -1], rope, visited)
+      end
+    else
+      raise "unsupported instruction: #{line}"
+    end
+  end
+
+  puts visited.size
+end
+
+part2
 
 __END__
 L 1
